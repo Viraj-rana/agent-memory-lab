@@ -94,11 +94,16 @@ def build_ui() -> gr.Blocks:
 
 
 if __name__ == "__main__":
-    print("Starting Agent Memory Lab…", flush=True)
+    import os
+
+    share = os.getenv("GRADIO_SHARE", "1") == "1"
+    port = int(os.getenv("PORT", "7860"))
+    print(f"Starting Agent Memory Lab on port {port} (share={share})…", flush=True)
     ui = build_ui()
+    ui.queue()
     ui.launch(
-        server_name="127.0.0.1",
-        server_port=7860,
-        share=True,
-        theme=gr.themes.Soft(),
+        server_name="0.0.0.0",
+        server_port=port,
+        share=share,
+        show_error=True,
     )
