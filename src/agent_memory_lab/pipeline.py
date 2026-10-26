@@ -6,8 +6,8 @@ from pathlib import Path
 from .answer import answer_question
 from .chunking import chunk_text, load_documents
 from .observability import QueryEvent, QueryLogger
-from .store import RetrievalMode, VectorStore
-from .types import Answer, Chunk
+from .store import VectorStore
+from .types import Answer, Chunk, RetrievalMode
 
 
 class MemoryLab:

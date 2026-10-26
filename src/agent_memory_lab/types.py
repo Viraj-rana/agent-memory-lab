@@ -1,6 +1,9 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Literal
+
+RetrievalMode = Literal["sparse", "dense", "hybrid"]
 
 
 @dataclass(frozen=True, slots=True)

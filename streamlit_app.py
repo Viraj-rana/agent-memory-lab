@@ -13,7 +13,7 @@ import streamlit as st
 
 from agent_memory_lab import MemoryLab
 from agent_memory_lab.eval import run_eval, score_summary
-from agent_memory_lab.store import RetrievalMode
+from agent_memory_lab.types import RetrievalMode
 
 AUTHOR = "Viraj Rana"
 AUTHOR_TITLE = "ML Engineer"

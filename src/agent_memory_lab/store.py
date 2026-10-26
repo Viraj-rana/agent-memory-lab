@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Literal
 
 import numpy as np
 from sklearn.decomposition import TruncatedSVD
@@ -9,9 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 
-from .types import Chunk
-
-RetrievalMode = Literal["sparse", "dense", "hybrid"]
+from .types import Chunk, RetrievalMode
 
 
 def reciprocal_rank_fusion(
