@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import sys
 from pathlib import Path
 
@@ -46,13 +47,29 @@ def main() -> None:
 
     with st.sidebar:
         if photo.exists():
-            st.image(
-                str(photo),
-                caption=f"{AUTHOR} · {AUTHOR_TITLE}",
-                use_container_width=True,
+            # Small circular avatar (not full-width sidebar image)
+            b64 = base64.b64encode(photo.read_bytes()).decode("ascii")
+            st.markdown(
+                f"""
+                <div style="display:flex;align-items:center;gap:0.65rem;margin:0.25rem 0 0.75rem;">
+                  <img
+                    src="data:image/jpeg;base64,{b64}"
+                    alt="{AUTHOR}, {AUTHOR_TITLE}"
+                    width="52"
+                    height="52"
+                    style="width:52px;height:52px;border-radius:50%;object-fit:cover;border:2px solid #818cf8;"
+                  />
+                  <div>
+                    <div style="font-weight:700;line-height:1.2;">{AUTHOR}</div>
+                    <div style="opacity:0.7;font-size:0.85rem;">{AUTHOR_TITLE}</div>
+                  </div>
+                </div>
+                """,
+                unsafe_allow_html=True,
             )
-        st.markdown(f"**{AUTHOR}**")
-        st.caption(AUTHOR_TITLE)
+        else:
+            st.markdown(f"**{AUTHOR}**")
+            st.caption(AUTHOR_TITLE)
         st.link_button(
             "Live demo home",
             "https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/",
