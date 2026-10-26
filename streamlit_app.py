@@ -89,9 +89,9 @@ def main() -> None:
                   <img
                     src="data:image/jpeg;base64,{b64}"
                     alt="{AUTHOR}, {AUTHOR_TITLE}"
-                    width="73"
-                    height="73"
-                    style="width:73px;height:73px;border-radius:50%;object-fit:cover;border:2px solid #818cf8;"
+                    width="88"
+                    height="88"
+                    style="width:88px;height:88px;border-radius:50%;object-fit:cover;border:2px solid #818cf8;"
                   />
                   <div>
                     <div style="font-weight:700;line-height:1.2;">{AUTHOR}</div>
