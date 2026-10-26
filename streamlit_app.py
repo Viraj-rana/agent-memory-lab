@@ -42,6 +42,22 @@ def get_lab() -> MemoryLab:
 
 def main() -> None:
     lab = get_lab()
+    photo = ROOT / "docs" / "assets" / "viraj-rana-ml-engineer-agent-memory-lab.jpg"
+
+    with st.sidebar:
+        if photo.exists():
+            st.image(
+                str(photo),
+                caption=f"{AUTHOR} · {AUTHOR_TITLE}",
+                use_container_width=True,
+            )
+        st.markdown(f"**{AUTHOR}**")
+        st.caption(AUTHOR_TITLE)
+        st.link_button(
+            "Live demo home",
+            "https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/",
+        )
+        st.link_button("GitHub repo", "https://github.com/Viraj-rana/agent-memory-lab")
 
     st.title("Agent Memory Lab")
     st.caption(
