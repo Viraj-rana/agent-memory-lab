@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agent-memory-lab"
-version = "0.1.0"
-description = "RAG and AI agent memory lab with citations and eval — by Viraj Rana (ML Engineer)"
+version = "0.3.0"
+description = "RAG and AI agent memory lab with Product LLM-RAG + offline Lab modes — by Viraj Rana (ML Engineer)"
 readme = "README.md"
 requires-python = ">=3.10"
 authors = [{ name = "Viraj Rana" }]

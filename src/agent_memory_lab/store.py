@@ -8,6 +8,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.preprocessing import normalize
 
+from .providers import embed_texts, provider_status
 from .types import Chunk, RetrievalMode
 
 
@@ -26,12 +27,10 @@ def reciprocal_rank_fusion(
 
 @dataclass
 class VectorStore:
-    """Hybrid in-memory index: sparse TF-IDF + dense LSA, fused with RRF.
-
-    No API key / no heavy embedding model — suitable for Streamlit Cloud.
-    """
+    """Hybrid index: sparse TF-IDF + dense (API embeddings or LSA), fused with RRF."""
 
     chunks: list[Chunk] = field(default_factory=list)
+    dense_backend: str = field(default="none", init=False)
     _vectorizer: TfidfVectorizer | None = field(default=None, init=False, repr=False)
     _sparse: np.ndarray | None = field(default=None, init=False, repr=False)
     _svd: TruncatedSVD | None = field(default=None, init=False, repr=False)
@@ -39,6 +38,7 @@ class VectorStore:
 
     def clear(self) -> None:
         self.chunks.clear()
+        self.dense_backend = "none"
         self._vectorizer = None
         self._sparse = None
         self._svd = None
@@ -50,6 +50,25 @@ class VectorStore:
         self.chunks.extend(chunks)
         self._rebuild()
 
+    def refresh_index(self) -> None:
+        """Rebuild sparse/dense indexes (e.g. after API keys become available)."""
+        if self.chunks:
+            self._rebuild()
+
+    def _build_lsa(self) -> None:
+        assert self._sparse is not None
+        n_samples, n_features = self._sparse.shape
+        if n_samples < 2 or n_features < 2:
+            self._svd = None
+            self._dense = None
+            self.dense_backend = "none"
+            return
+        n_components = max(2, min(64, n_samples - 1, n_features - 1))
+        self._svd = TruncatedSVD(n_components=n_components, random_state=42)
+        dense = self._svd.fit_transform(self._sparse)
+        self._dense = normalize(dense)
+        self.dense_backend = "lsa"
+
     def _rebuild(self) -> None:
         texts = [c.text for c in self.chunks]
         self._vectorizer = TfidfVectorizer(
@@ -60,17 +79,15 @@ class VectorStore:
         )
         self._sparse = self._vectorizer.fit_transform(texts)
 
-        n_samples, n_features = self._sparse.shape
-        # LSA needs at least 2 samples; keep dense optional for tiny corpora.
-        if n_samples < 2 or n_features < 2:
-            self._svd = None
-            self._dense = None
-            return
-
-        n_components = max(2, min(64, n_samples - 1, n_features - 1))
-        self._svd = TruncatedSVD(n_components=n_components, random_state=42)
-        dense = self._svd.fit_transform(self._sparse)
-        self._dense = normalize(dense)
+        # Prefer neural embeddings when an API key is configured; else LSA.
+        if provider_status().embed_ready:
+            neural = embed_texts(texts)
+            if neural is not None and len(neural) == len(texts):
+                self._svd = None
+                self._dense = normalize(neural)
+                self.dense_backend = "api"
+                return
+        self._build_lsa()
 
     def _top_indices(self, scores: np.ndarray, top_k: int) -> list[int]:
         if scores.size == 0:
@@ -91,13 +108,18 @@ class VectorStore:
         return [(self.chunks[i], float(scores[i])) for i in self._top_indices(scores, top_k)]
 
     def search_dense(self, query: str, *, top_k: int = 8) -> list[tuple[Chunk, float]]:
-        if (
-            not self.chunks
-            or self._vectorizer is None
-            or self._svd is None
-            or self._dense is None
-        ):
-            # Fall back to sparse if LSA is unavailable.
+        if not self.chunks or self._dense is None:
+            return self.search_sparse(query, top_k=top_k)
+
+        if self.dense_backend == "api":
+            q = embed_texts([query])
+            if q is None:
+                return self.search_sparse(query, top_k=top_k)
+            q_dense = normalize(q)
+            scores = (self._dense @ q_dense.T).ravel()
+            return [(self.chunks[i], float(scores[i])) for i in self._top_indices(scores, top_k)]
+
+        if self._vectorizer is None or self._svd is None:
             return self.search_sparse(query, top_k=top_k)
         q_sparse = self._vectorizer.transform([query])
         q_dense = normalize(self._svd.transform(q_sparse))
@@ -129,7 +151,6 @@ class VectorStore:
         dense_ranks = [id_to_idx[c.id] for c, _ in dense_hits if c.id in id_to_idx]
         fused = reciprocal_rank_fusion([sparse_ranks, dense_ranks])
 
-        # Blend RRF score with max channel score for readable UI values.
         channel_scores: dict[str, float] = {}
         for chunk, score in sparse_hits + dense_hits:
             channel_scores[chunk.id] = max(channel_scores.get(chunk.id, 0.0), score)
@@ -138,5 +159,7 @@ class VectorStore:
         results: list[tuple[Chunk, float]] = []
         for idx, rrf in fused[:top_k]:
             chunk = chunks[idx]
-            results.append((chunk, round(float(rrf) + 0.15 * channel_scores.get(chunk.id, 0.0), 4)))
+            results.append(
+                (chunk, round(float(rrf) + 0.15 * channel_scores.get(chunk.id, 0.0), 4))
+            )
         return results

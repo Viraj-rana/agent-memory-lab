@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-import os
 import re
 from typing import Callable
 
+from .providers import chat_completion, llm_endpoint
 from .types import Answer, Citation, Chunk
 
 _SENTENCE = re.compile(r"(?<=[.!?])\s+")
+
+
+def llm_available() -> bool:
+    return llm_endpoint() is not None
 
 
 def _extractive(question: str, hits: list[tuple[Chunk, float]]) -> Answer:
@@ -23,7 +27,6 @@ def _extractive(question: str, hits: list[tuple[Chunk, float]]) -> Answer:
         Citation(doc_id=c.doc_id, chunk_id=c.id, text=c.text, score=round(score, 4))
         for c, score in hits
     )
-    # Prefer the densest sentences from the best hit, then stitch context.
     best_chunk, _ = hits[0]
     sentences = [s.strip() for s in _SENTENCE.split(best_chunk.text) if s.strip()]
     q_terms = {t.lower() for t in re.findall(r"[a-zA-Z0-9_]+", question) if len(t) > 2}
@@ -42,59 +45,44 @@ def _extractive(question: str, hits: list[tuple[Chunk, float]]) -> Answer:
     return Answer(question=question, answer=answer, citations=citations, mode="extractive")
 
 
-def _llm_answer(question: str, hits: list[tuple[Chunk, float]]) -> Answer | None:
-    """Optional OpenAI-compatible generation when OPENAI_API_KEY is set."""
-    api_key = os.getenv("OPENAI_API_KEY") or os.getenv("LLM_API_KEY")
-    if not api_key or not hits:
-        return None
-    try:
-        from urllib import request
-        import json
-    except ImportError:
+def _llm_rag_answer(question: str, hits: list[tuple[Chunk, float]]) -> Answer | None:
+    """Product RAG: generate an answer grounded only in retrieved memory."""
+    if not hits or not llm_available():
         return None
 
     context = "\n\n".join(
-        f"[{i + 1}] (doc={c.doc_id}) {c.text}" for i, (c, _) in enumerate(hits)
+        f"[{i + 1}] (doc={c.doc_id}, score={score:.3f})\n{c.text}"
+        for i, (c, score) in enumerate(hits)
     )
-    payload = {
-        "model": os.getenv("LLM_MODEL", "gpt-4o-mini"),
-        "messages": [
-            {
-                "role": "system",
-                "content": (
-                    "Answer using only the provided memory snippets. "
-                    "Cite sources like [1], [2]. If unknown, say you do not know."
-                ),
-            },
-            {
-                "role": "user",
-                "content": f"Question: {question}\n\nMemory:\n{context}",
-            },
-        ],
-        "temperature": 0.2,
-    }
-    base = os.getenv("OPENAI_BASE_URL", "https://api.openai.com/v1").rstrip("/")
-    req = request.Request(
-        f"{base}/chat/completions",
-        data=json.dumps(payload).encode(),
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
+    messages = [
+        {
+            "role": "system",
+            "content": (
+                "You are a careful RAG assistant for an agent-memory system. "
+                "Use ONLY the provided memory snippets. "
+                "Cite supporting snippets inline like [1] or [2]. "
+                "If the memory is insufficient, say you do not know and do not invent facts. "
+                "Be concise and technical."
+            ),
         },
-        method="POST",
-    )
-    try:
-        with request.urlopen(req, timeout=30) as resp:
-            data = json.loads(resp.read().decode())
-        text = data["choices"][0]["message"]["content"].strip()
-    except Exception:
+        {
+            "role": "user",
+            "content": (
+                f"Question:\n{question}\n\n"
+                f"Retrieved memory:\n{context}\n\n"
+                "Write the best answer you can from this memory, with citations."
+            ),
+        },
+    ]
+    text = chat_completion(messages, temperature=0.2)
+    if not text:
         return None
 
     citations = tuple(
         Citation(doc_id=c.doc_id, chunk_id=c.id, text=c.text, score=round(score, 4))
         for c, score in hits
     )
-    return Answer(question=question, answer=text, citations=citations, mode="llm")
+    return Answer(question=question, answer=text, citations=citations, mode="llm-rag")
 
 
 def answer_question(
@@ -104,7 +92,7 @@ def answer_question(
     prefer_llm: bool = True,
 ) -> Answer:
     if prefer_llm:
-        llm = _llm_answer(question, hits)
+        llm = _llm_rag_answer(question, hits)
         if llm is not None:
             return llm
     return _extractive(question, hits)

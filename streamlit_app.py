@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import base64
+import os
 import sys
 from pathlib import Path
 
@@ -20,6 +21,17 @@ AUTHOR_TITLE = "ML Engineer"
 DOCS = ROOT / "data" / "sample_docs"
 LIVE = "https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/"
 
+SECRET_KEYS = (
+    "OPENAI_API_KEY",
+    "LLM_API_KEY",
+    "GROQ_API_KEY",
+    "OPENAI_BASE_URL",
+    "GROQ_BASE_URL",
+    "LLM_MODEL",
+    "GROQ_MODEL",
+    "EMBEDDING_MODEL",
+)
+
 st.set_page_config(
     page_title="Agent Memory Lab | RAG & AI Agent Memory by Viraj Rana",
     page_icon="🧠",
@@ -36,16 +48,36 @@ st.set_page_config(
 )
 
 
-def get_lab() -> MemoryLab:
+def apply_streamlit_secrets() -> None:
+    """Copy Streamlit secrets into env so providers.py can read them safely."""
+    try:
+        secrets = st.secrets
+    except Exception:
+        return
+    for key in SECRET_KEYS:
+        try:
+            value = secrets.get(key)
+        except Exception:
+            continue
+        if value and key not in os.environ:
+            os.environ[key] = str(value)
+
+
+def get_lab(*, product_mode: bool) -> MemoryLab:
+    apply_streamlit_secrets()
     if "lab" not in st.session_state:
-        lab = MemoryLab(default_mode="hybrid")
+        lab = MemoryLab(default_mode="hybrid", product_mode=product_mode)
         lab.ingest_folder(DOCS)
         st.session_state.lab = lab
-    return st.session_state.lab
+    else:
+        lab = st.session_state.lab
+        lab.product_mode = product_mode
+        lab.maybe_upgrade_dense()
+    return lab
 
 
 def main() -> None:
-    lab = get_lab()
+    apply_streamlit_secrets()
     photo = ROOT / "docs" / "assets" / "viraj-rana-ml-engineer-agent-memory-lab.jpg"
 
     with st.sidebar:
@@ -76,12 +108,28 @@ def main() -> None:
         st.link_button("Live demo home", LIVE)
         st.link_button("GitHub repo", "https://github.com/Viraj-rana/agent-memory-lab")
         st.divider()
+
+        experience = st.radio(
+            "Experience",
+            options=["Product", "Lab"],
+            index=0,
+            help=(
+                "Product uses LLM-RAG + neural embeddings when API keys are set. "
+                "Lab always uses offline TF-IDF + LSA + extractive answers."
+            ),
+        )
+        product_mode = experience == "Product"
+
+        st.divider()
         st.subheader("Upload memory")
         uploads = st.file_uploader(
             "Add .md / .txt docs",
             type=["md", "txt", "markdown"],
             accept_multiple_files=True,
         )
+
+        lab = get_lab(product_mode=product_mode)
+
         if uploads and st.button("Ingest uploads", use_container_width=True):
             added = 0
             for item in uploads:
@@ -97,19 +145,34 @@ def main() -> None:
             lab.ingest_folder(DOCS)
             st.rerun()
 
+        caps = lab.capabilities()
+        st.divider()
+        st.caption("Provider status")
+        st.write(
+            f"LLM: `{'ready' if caps['llm_ready'] else 'offline'}` "
+            f"({caps['llm_provider']})  \n"
+            f"Dense: `{caps['dense_backend']}` "
+            f"({caps['embed_provider']})"
+        )
+        if product_mode and not caps["llm_ready"]:
+            st.info(
+                "Product mode is on, but no LLM key is set — using extractive fallback. "
+                "Add `OPENAI_API_KEY` or `GROQ_API_KEY` in Streamlit secrets for LLM-RAG."
+            )
+
     st.title("Agent Memory Lab")
     st.caption(
         f"Hybrid RAG & AI agent memory · citations · eval · observability · "
         f"**{AUTHOR}** · {AUTHOR_TITLE}"
     )
     st.markdown(
-        "Senior-leaning portfolio lab: **sparse TF-IDF + dense LSA**, fused with "
-        "**reciprocal rank fusion (RRF)**, citation-aware answers, uploadable corpus, "
-        "and measured evaluation — no API key required."
+        "Portfolio RAG product: **hybrid retrieval** (TF-IDF + neural embeddings or LSA), "
+        "**RRF fusion**, **LLM-RAG or extractive** answers with citations, uploads, "
+        "golden eval, and query logs. Offline-safe without API keys."
     )
     st.write(
         f"Indexed **{lab.chunk_count}** chunks from "
-        f"`{', '.join(lab.doc_ids)}`."
+        f"`{', '.join(lab.doc_ids)}` · dense=`{lab.dense_backend}`."
     )
 
     col_ask, col_eval = st.columns([3, 2], gap="large")
@@ -131,7 +194,7 @@ def main() -> None:
                 "Retrieval mode",
                 options=["hybrid", "sparse", "dense"],
                 index=0,
-                help="hybrid = TF-IDF + LSA fused with RRF",
+                help="hybrid = sparse + dense fused with RRF",
             )
         ask = st.button("Ask", type="primary", use_container_width=True)
 
@@ -147,10 +210,18 @@ def main() -> None:
             question = picked
 
         if ask:
-            result = lab.ask(question, top_k=top_k, prefer_llm=False, mode=mode)
+            result = lab.ask(
+                question,
+                top_k=top_k,
+                prefer_llm=product_mode,
+                mode=mode,
+            )
             event = lab.logger.latest(1)
             latency = event[0].latency_ms if event else None
-            st.markdown(f"**Mode:** `{result.mode}` · **retrieval:** `{mode}`")
+            st.markdown(
+                f"**Answer:** `{result.mode}` · **retrieval:** `{mode}` · "
+                f"**dense:** `{lab.dense_backend}`"
+            )
             if latency is not None:
                 st.caption(f"Latency: **{latency:.1f} ms**")
             st.markdown(result.answer)
@@ -165,6 +236,7 @@ def main() -> None:
 
     with col_eval:
         st.subheader("Golden eval")
+        st.caption("Eval always uses extractive answers for stable offline scoring.")
         if st.button("Run golden eval", use_container_width=True):
             results = run_eval(lab)
             summary = score_summary(results)
@@ -174,7 +246,10 @@ def main() -> None:
             m3, m4 = st.columns(2)
             m3.metric("Precision@k", f"{summary['precision_at_k']:.0%}")
             m4.metric("Abstain accuracy", f"{summary['abstain_accuracy']:.0%}")
-            st.caption(f"Avg latency: {summary['avg_latency_ms']:.1f} ms · cases: {int(summary['cases'])}")
+            st.caption(
+                f"Avg latency: {summary['avg_latency_ms']:.1f} ms · "
+                f"cases: {int(summary['cases'])}"
+            )
             rows = [
                 {
                     "Question": r.question,
@@ -201,13 +276,13 @@ def main() -> None:
         st.markdown(
             """
 ```text
-Upload/Docs → Chunk → TF-IDF (sparse) + LSA (dense)
+Upload/Docs → Chunk → TF-IDF (sparse) + Embeddings/LSA (dense)
                          ↘         ↙
                       Reciprocal Rank Fusion
                               ↓
-                    Answer + Citations + Eval
+                 LLM-RAG (product) or Extractive (lab)
                               ↓
-                         Query logger
+                    Citations + Eval + Query logger
 ```
             """
         )

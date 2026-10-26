@@ -9,6 +9,8 @@ from typing import Any
 class QueryEvent:
     question: str
     mode: str
+    answer_mode: str
+    dense_backend: str
     latency_ms: float
     top_doc_ids: tuple[str, ...]
     top_scores: tuple[float, ...]

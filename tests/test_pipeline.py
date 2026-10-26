@@ -4,6 +4,7 @@ from pathlib import Path
 
 from agent_memory_lab import MemoryLab
 from agent_memory_lab.eval import run_eval, score_summary
+from agent_memory_lab.providers import provider_status
 from agent_memory_lab.store import reciprocal_rank_fusion
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -11,14 +12,41 @@ DOCS = ROOT / "data" / "sample_docs"
 
 
 def test_ingest_and_ask_returns_citations():
-    lab = MemoryLab()
+    lab = MemoryLab(product_mode=True)
     n = lab.ingest_folder(DOCS)
     assert n > 0
+    # Offline: product mode falls back to extractive without keys.
     ans = lab.ask("What is agent memory?", prefer_llm=False, mode="hybrid")
     assert ans.answer
     assert ans.citations
     assert ans.mode == "extractive"
-    assert lab.logger.latest(1)
+    event = lab.logger.latest(1)[0]
+    assert event.answer_mode == "extractive"
+    assert event.dense_backend in {"lsa", "api", "none"}
+
+
+def test_product_mode_falls_back_without_keys(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    lab = MemoryLab(product_mode=True)
+    lab.ingest_folder(DOCS)
+    ans = lab.ask("What is agent memory?")
+    assert ans.mode == "extractive"
+    assert lab.dense_backend == "lsa"
+    caps = lab.capabilities()
+    assert caps["llm_ready"] is False
+    assert caps["embed_ready"] is False
+
+
+def test_provider_status_offline(monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    monkeypatch.delenv("GROQ_API_KEY", raising=False)
+    status = provider_status()
+    assert status.llm_ready is False
+    assert status.embed_ready is False
+    assert status.embed_provider == "lsa-fallback"
 
 
 def test_hybrid_and_sparse_both_retrieve():

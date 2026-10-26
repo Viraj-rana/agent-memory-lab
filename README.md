@@ -31,7 +31,7 @@ tags:
 
 <p align="center">
   <strong>Viraj Rana</strong> · ML Engineer<br/>
-  Senior-leaning <strong>hybrid RAG</strong> / <strong>AI agent memory</strong> lab with citations, eval, and observability
+  Hybrid RAG / AI agent memory lab with <strong>Product</strong> (LLM-RAG + embeddings) and offline <strong>Lab</strong> modes
 </p>
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B.svg)](https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/)
@@ -39,7 +39,7 @@ tags:
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub pages](https://img.shields.io/badge/SEO-GitHub%20Pages-222.svg)](https://viraj-rana.github.io/agent-memory-lab/)
 
-**Retrieval-augmented generation (RAG)** lab for **AI agent memory**: ingest documents (including uploads), retrieve with **hybrid sparse+dense fusion**, answer with **citations**, log latency, and measure quality with a golden eval suite.
+**Retrieval-augmented generation (RAG)** lab for **AI agent memory**: ingest documents (including uploads), retrieve with **hybrid sparse+dense fusion**, answer with **citations** (LLM-RAG or extractive), log latency, and measure quality with a golden eval suite.
 
 **Author:** [Viraj Rana](https://github.com/Viraj-rana) · ML Engineer  
 **Live demo:** https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/  
@@ -47,27 +47,29 @@ tags:
 **SEO landing page:** https://viraj-rana.github.io/agent-memory-lab/  
 **Design notes:** [DESIGN.md](DESIGN.md)
 
-> Default demo needs **no API key** (TF-IDF + LSA hybrid retrieval + extractive answers).
+> Default **Lab** path needs **no API key** (TF-IDF + LSA + extractive).  
+> Optional **Product** path: neural embeddings + LLM-RAG when Streamlit secrets / env keys are set.
 
 ## Architecture
 
 ```text
 Docs / uploads → Chunking
                  ├─ Sparse: TF-IDF
-                 └─ Dense: LSA (TruncatedSVD)
+                 └─ Dense: OpenAI embeddings (if keyed) or LSA
                         ↘     ↙
                    Reciprocal Rank Fusion
                             ↓
-              Extractive answer + citations
+         Product: LLM-RAG (OpenAI/Groq)  |  Lab: extractive
                             ↓
-              Golden eval + query observability
+              Citations + golden eval + query observability
 ```
 
 ## Why this project
 
 Searchable skills this portfolio shows:
 
-- Hybrid RAG (sparse TF-IDF + dense LSA, fused with RRF)
+- Hybrid RAG (sparse TF-IDF + dense embeddings/LSA, fused with RRF)
+- Product vs Lab modes with safe offline fallbacks
 - Agent memory architecture (ingest → index → retrieve → answer → evaluate)
 - Citation-aware answers and abstain behavior
 - Evaluation beyond vibes: hit rates, Precision@k, abstain accuracy, latency
@@ -95,26 +97,35 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
+### Optional Product mode (keys)
+
+Copy `.streamlit/secrets.toml.example` → `.streamlit/secrets.toml` (gitignored), or set the same keys in **Streamlit Cloud → App settings → Secrets**:
+
+- `OPENAI_API_KEY` — chat + embeddings
+- or `GROQ_API_KEY` — chat only (dense stays LSA unless OpenAI key is also set)
+
+Never commit real keys.
+
 ## Features
 
 | Capability | Implementation |
 |---|---|
-| Document ingest | Sample markdown + `.md`/`.txt` uploads |
-| Hybrid retrieval | TF-IDF (sparse) + LSA (dense) + RRF fusion |
-| Answering | Extractive answers grounded in retrieved memory |
+| Document ingest | Sample markdown + `.md`/`.txt` uploads (batched rebuild) |
+| Hybrid retrieval | TF-IDF + neural embeddings or LSA + RRF fusion |
+| Answering | Product LLM-RAG; Lab extractive; automatic fallback |
 | Citations | Doc id, score, and excerpt on every answer |
 | Evaluation | Text/citation hits, Precision@k, abstain accuracy, latency |
-| Observability | Per-query mode, latency, top docs/scores |
+| Observability | Per-query retrieval mode, answer mode, dense backend, latency |
 
 ## Project structure
 
 ```text
 streamlit_app.py       # Streamlit Cloud entrypoint
 docs/                  # GitHub Pages SEO landing + author photo
-src/agent_memory_lab/  # Core library
+src/agent_memory_lab/  # Core library (providers, store, answer, eval)
 data/sample_docs/      # Demo corpus about agent memory & RAG
 notebooks/             # Jupyter walkthrough
-tests/                 # Unit tests
+tests/                 # Unit tests (offline, no keys required)
 ```
 
 ## Topics / keywords
