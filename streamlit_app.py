@@ -166,7 +166,7 @@ def main() -> None:
         f"**{AUTHOR}** · {AUTHOR_TITLE}"
     )
     st.markdown(
-        "Portfolio RAG product: **hybrid retrieval** (TF-IDF + neural embeddings or LSA), "
+        "**Hybrid retrieval** (TF-IDF + neural embeddings or LSA), "
         "**RRF fusion**, **LLM-RAG or extractive** answers with citations, uploads, "
         "golden eval, and query logs. Offline-safe without API keys."
     )
