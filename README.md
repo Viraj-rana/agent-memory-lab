@@ -19,16 +19,6 @@ tags:
   - portfolio
 ---
 
-# Agent Memory Lab — RAG & AI Agent Memory Demo
-
-<p align="center">
-  <img
-    src="docs/assets/viraj-rana-ml-engineer-agent-memory-lab.jpg"
-    alt="Viraj Rana, ML Engineer — creator of Agent Memory Lab RAG and AI agent memory project"
-    width="180"
-  />
-</p>
-
 <p align="center">
   <strong>Viraj Rana</strong> · ML Engineer<br/>
   Hybrid RAG / AI agent memory lab with <strong>Product</strong> (LLM-RAG + embeddings) and offline <strong>Lab</strong> modes
