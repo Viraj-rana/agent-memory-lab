@@ -13,10 +13,12 @@ import streamlit as st
 
 from agent_memory_lab import MemoryLab
 from agent_memory_lab.eval import run_eval, score_summary
+from agent_memory_lab.store import RetrievalMode
 
 AUTHOR = "Viraj Rana"
 AUTHOR_TITLE = "ML Engineer"
 DOCS = ROOT / "data" / "sample_docs"
+LIVE = "https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/"
 
 st.set_page_config(
     page_title="Agent Memory Lab | RAG & AI Agent Memory by Viraj Rana",
@@ -24,7 +26,7 @@ st.set_page_config(
     layout="wide",
     menu_items={
         "About": (
-            "Agent Memory Lab — RAG / agent-memory demo with citations. "
+            "Agent Memory Lab — hybrid RAG / agent-memory demo with citations. "
             "Built by Viraj Rana, ML Engineer. "
             "https://github.com/Viraj-rana/agent-memory-lab"
         ),
@@ -34,11 +36,12 @@ st.set_page_config(
 )
 
 
-@st.cache_resource(show_spinner="Indexing sample memory…")
 def get_lab() -> MemoryLab:
-    lab = MemoryLab()
-    lab.ingest_folder(DOCS)
-    return lab
+    if "lab" not in st.session_state:
+        lab = MemoryLab(default_mode="hybrid")
+        lab.ingest_folder(DOCS)
+        st.session_state.lab = lab
+    return st.session_state.lab
 
 
 def main() -> None:
@@ -47,7 +50,6 @@ def main() -> None:
 
     with st.sidebar:
         if photo.exists():
-            # Small circular avatar (not full-width sidebar image)
             b64 = base64.b64encode(photo.read_bytes()).decode("ascii")
             st.markdown(
                 f"""
@@ -70,20 +72,40 @@ def main() -> None:
         else:
             st.markdown(f"**{AUTHOR}**")
             st.caption(AUTHOR_TITLE)
-        st.link_button(
-            "Live demo home",
-            "https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/",
-        )
+
+        st.link_button("Live demo home", LIVE)
         st.link_button("GitHub repo", "https://github.com/Viraj-rana/agent-memory-lab")
+        st.divider()
+        st.subheader("Upload memory")
+        uploads = st.file_uploader(
+            "Add .md / .txt docs",
+            type=["md", "txt", "markdown"],
+            accept_multiple_files=True,
+        )
+        if uploads and st.button("Ingest uploads", use_container_width=True):
+            added = 0
+            for item in uploads:
+                try:
+                    added += lab.ingest_bytes(item.name, item.getvalue())
+                except ValueError as exc:
+                    st.error(str(exc))
+            st.success(f"Ingested {added} new chunks.")
+            st.rerun()
+
+        if st.button("Reset to sample docs", use_container_width=True):
+            lab.reset()
+            lab.ingest_folder(DOCS)
+            st.rerun()
 
     st.title("Agent Memory Lab")
     st.caption(
-        f"RAG & AI agent memory demo with citations · no API key required · "
+        f"Hybrid RAG & AI agent memory · citations · eval · observability · "
         f"**{AUTHOR}** · {AUTHOR_TITLE}"
     )
     st.markdown(
-        "Explore **retrieval-augmented generation**: ask questions, inspect "
-        "**citations**, and run a golden **evaluation** suite."
+        "Senior-leaning portfolio lab: **sparse TF-IDF + dense LSA**, fused with "
+        "**reciprocal rank fusion (RRF)**, citation-aware answers, uploadable corpus, "
+        "and measured evaluation — no API key required."
     )
     st.write(
         f"Indexed **{lab.chunk_count}** chunks from "
@@ -101,7 +123,16 @@ def main() -> None:
             label_visibility="collapsed",
             placeholder="e.g. Why do citations matter in RAG?",
         )
-        top_k = st.slider("Top-K chunks", min_value=1, max_value=6, value=4)
+        c1, c2 = st.columns(2)
+        with c1:
+            top_k = st.slider("Top-K chunks", min_value=1, max_value=8, value=4)
+        with c2:
+            mode: RetrievalMode = st.selectbox(
+                "Retrieval mode",
+                options=["hybrid", "sparse", "dense"],
+                index=0,
+                help="hybrid = TF-IDF + LSA fused with RRF",
+            )
         ask = st.button("Ask", type="primary", use_container_width=True)
 
         examples = [
@@ -109,18 +140,23 @@ def main() -> None:
             "How does hybrid retrieval combine signals?",
             "What should a citation include in a RAG answer?",
             "How do you evaluate a memory system quickly?",
+            "What stages make up a clean agent-memory architecture?",
         ]
         picked = st.selectbox("Examples", options=["—"] + examples)
         if picked != "—":
             question = picked
 
-        if ask or st.session_state.get("_auto_ask"):
-            result = lab.ask(question, top_k=top_k, prefer_llm=False)
-            st.markdown(f"**Mode:** `{result.mode}`")
+        if ask:
+            result = lab.ask(question, top_k=top_k, prefer_llm=False, mode=mode)
+            event = lab.logger.latest(1)
+            latency = event[0].latency_ms if event else None
+            st.markdown(f"**Mode:** `{result.mode}` · **retrieval:** `{mode}`")
+            if latency is not None:
+                st.caption(f"Latency: **{latency:.1f} ms**")
             st.markdown(result.answer)
             st.subheader("Citations")
             if not result.citations:
-                st.info("No citations")
+                st.info("No citations (abstained or weak retrieval).")
             else:
                 for i, c in enumerate(result.citations, start=1):
                     excerpt = c.text if len(c.text) < 280 else c.text[:277] + "..."
@@ -132,13 +168,21 @@ def main() -> None:
         if st.button("Run golden eval", use_container_width=True):
             results = run_eval(lab)
             summary = score_summary(results)
-            st.metric("Text hit rate", f"{summary['text_hit_rate']:.0%}")
-            st.metric("Citation hit rate", f"{summary['citation_hit_rate']:.0%}")
+            m1, m2 = st.columns(2)
+            m1.metric("Text hit rate", f"{summary['text_hit_rate']:.0%}")
+            m2.metric("Citation hit rate", f"{summary['citation_hit_rate']:.0%}")
+            m3, m4 = st.columns(2)
+            m3.metric("Precision@k", f"{summary['precision_at_k']:.0%}")
+            m4.metric("Abstain accuracy", f"{summary['abstain_accuracy']:.0%}")
+            st.caption(f"Avg latency: {summary['avg_latency_ms']:.1f} ms · cases: {int(summary['cases'])}")
             rows = [
                 {
                     "Question": r.question,
                     "Text": "✅" if r.pass_text else "❌",
                     "Citation": "✅" if r.pass_citation else "❌",
+                    "P@k": f"{r.precision_at_k:.2f}",
+                    "Abstain OK": "✅" if r.pass_abstain else "❌",
+                    "ms": f"{r.latency_ms:.1f}",
                     "Docs": ", ".join(r.cited_docs) or "—",
                 }
                 for r in results
@@ -146,8 +190,30 @@ def main() -> None:
             st.dataframe(rows, use_container_width=True, hide_index=True)
 
     st.divider()
+    st.subheader("Observability")
+    logs = lab.logger.as_rows(12)
+    if logs:
+        st.dataframe(logs, use_container_width=True, hide_index=True)
+    else:
+        st.caption("Ask a question to populate the query log (latency, mode, top docs).")
+
+    with st.expander("Architecture (quick view)"):
+        st.markdown(
+            """
+```text
+Upload/Docs → Chunk → TF-IDF (sparse) + LSA (dense)
+                         ↘         ↙
+                      Reciprocal Rank Fusion
+                              ↓
+                    Answer + Citations + Eval
+                              ↓
+                         Query logger
+```
+            """
+        )
+
     st.markdown(
-        f"Built by **{AUTHOR}** ({AUTHOR_TITLE}) · source in this repository · MIT"
+        f"Built by **{AUTHOR}** ({AUTHOR_TITLE}) · hybrid RAG portfolio lab · MIT"
     )
 
 

@@ -31,7 +31,7 @@ tags:
 
 <p align="center">
   <strong>Viraj Rana</strong> · ML Engineer<br/>
-  Open-source <strong>RAG</strong> / <strong>AI agent memory</strong> lab with citations
+  Senior-leaning <strong>hybrid RAG</strong> / <strong>AI agent memory</strong> lab with citations, eval, and observability
 </p>
 
 [![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B.svg)](https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/)
@@ -39,24 +39,40 @@ tags:
 [![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
 [![GitHub pages](https://img.shields.io/badge/SEO-GitHub%20Pages-222.svg)](https://viraj-rana.github.io/agent-memory-lab/)
 
-**Retrieval-augmented generation (RAG)** lab for **AI agent memory**: ingest documents, retrieve relevant chunks, answer with **citations**, and measure quality with a golden eval suite.
+**Retrieval-augmented generation (RAG)** lab for **AI agent memory**: ingest documents (including uploads), retrieve with **hybrid sparse+dense fusion**, answer with **citations**, log latency, and measure quality with a golden eval suite.
 
 **Author:** [Viraj Rana](https://github.com/Viraj-rana) · ML Engineer  
 **Live demo:** https://agent-memory-lab-nmyqs8dvibpgt28psyn2tl.streamlit.app/  
 **Repo:** https://github.com/Viraj-rana/agent-memory-lab  
-**SEO landing page:** https://viraj-rana.github.io/agent-memory-lab/
+**SEO landing page:** https://viraj-rana.github.io/agent-memory-lab/  
+**Design notes:** [DESIGN.md](DESIGN.md)
 
-> Default demo needs **no API key** (TF-IDF retrieval + extractive answers).
+> Default demo needs **no API key** (TF-IDF + LSA hybrid retrieval + extractive answers).
+
+## Architecture
+
+```text
+Docs / uploads → Chunking
+                 ├─ Sparse: TF-IDF
+                 └─ Dense: LSA (TruncatedSVD)
+                        ↘     ↙
+                   Reciprocal Rank Fusion
+                            ↓
+              Extractive answer + citations
+                            ↓
+              Golden eval + query observability
+```
 
 ## Why this project
 
 Searchable skills this portfolio shows:
 
-- RAG / retrieval-augmented generation pipelines
+- Hybrid RAG (sparse TF-IDF + dense LSA, fused with RRF)
 - Agent memory architecture (ingest → index → retrieve → answer → evaluate)
-- Citation-aware answers for trustworthy AI
-- Lightweight evaluation (text hit rate + citation hit rate)
-- Clean Python packaging + Streamlit product UI
+- Citation-aware answers and abstain behavior
+- Evaluation beyond vibes: hit rates, Precision@k, abstain accuracy, latency
+- Uploadable corpus + Streamlit product UI
+- Explicit design tradeoffs ([DESIGN.md](DESIGN.md))
 
 ## Live demo
 
@@ -83,11 +99,12 @@ streamlit run streamlit_app.py
 
 | Capability | Implementation |
 |---|---|
-| Document ingest | Markdown → overlapping chunks |
-| Retrieval | TF-IDF cosine similarity (no cloud embeddings) |
+| Document ingest | Sample markdown + `.md`/`.txt` uploads |
+| Hybrid retrieval | TF-IDF (sparse) + LSA (dense) + RRF fusion |
 | Answering | Extractive answers grounded in retrieved memory |
 | Citations | Doc id, score, and excerpt on every answer |
-| Evaluation | Golden questions with text + citation hit rates |
+| Evaluation | Text/citation hits, Precision@k, abstain accuracy, latency |
+| Observability | Per-query mode, latency, top docs/scores |
 
 ## Project structure
 
