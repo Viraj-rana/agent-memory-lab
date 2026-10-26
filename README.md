@@ -1,35 +1,28 @@
+---
+title: Agent Memory Lab
+emoji: 🧠
+colorFrom: indigo
+colorTo: blue
+sdk: gradio
+sdk_version: 4.44.1
+app_file: app.py
+pinned: false
+license: mit
+short_description: RAG agent memory demo with citations — by Viraj Rana (ML Engineer)
+tags:
+  - rag
+  - agent-memory
+  - retrieval
+  - gradio
+---
+
 # Agent Memory Lab
 
 Lightweight **agent memory / RAG** demo with citations and a tiny golden eval.
 
-Recruiters: open the live demo, ask a question, click **Run golden eval**.
+**Author:** Viraj Rana · ML Engineer
 
-## Live demo
-
-**Public preview (while this machine keeps the demo running):**  
-https://matt-arising-traveller-glad.trycloudflare.com
-
-Local: http://127.0.0.1:7861
-
-> Tunnel links die when you close the terminal. For a permanent recruiter URL, deploy to Hugging Face Spaces.
-
-### Run locally
-
-```bash
-python -m venv .venv
-# Windows
-.venv\Scripts\activate
-pip install -e ".[dev]"
-set GRADIO_SHARE=0
-set PORT=7861
-python app.py
-```
-
-### Permanent host (Hugging Face Spaces)
-
-1. Create a new Space (Gradio / Docker).
-2. Push this repo (or use the included `Dockerfile`).
-3. Space URL becomes your always-on recruiter link.
+Recruiters: open the live Space, ask a question, click **Run golden eval**.
 
 ## What it shows
 
@@ -41,33 +34,22 @@ python app.py
 | Citations | Doc id + score + excerpt on every answer |
 | Eval | Text hit rate + citation hit rate on 4 golden questions |
 
-## Project layout
-
-```text
-app.py                 # Gradio UI (shareable live preview)
-src/agent_memory_lab/  # clean library code
-data/sample_docs/      # demo corpus
-notebooks/             # thin walkthrough
-tests/                 # regression tests
-```
-
-## Notebook
+## Run locally
 
 ```bash
-jupyter notebook notebooks/01_agent_memory_lab.ipynb
-```
-
-## Tests
-
-```bash
-pytest -q
+python -m venv .venv
+# Windows
+.venv\Scripts\activate
+pip install -r requirements.txt
+set GRADIO_SHARE=0
+python app.py
 ```
 
 ## Design notes
 
-- Business logic lives in `src/` — the notebook and Gradio app only orchestrate.
+- Business logic lives in `src/` — the Gradio app only orchestrates.
 - Default path needs **no cloud key**, so the demo always boots.
-- Optional LLM generation uses the OpenAI-compatible HTTP API when a key exists.
+- Built by **Viraj Rana (ML Engineer)** as a portfolio RAG / agent-memory lab.
 
 ## License
 

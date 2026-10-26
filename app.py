@@ -1,19 +1,26 @@
-"""Gradio live demo for Agent Memory Lab."""
+"""Gradio live demo for Agent Memory Lab — Hugging Face Spaces ready."""
 
 from __future__ import annotations
 
+import os
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parent
+sys.path.insert(0, str(ROOT / "src"))
 
 import gradio as gr
 
 from agent_memory_lab import MemoryLab
 from agent_memory_lab.eval import run_eval, score_summary
 
-ROOT = Path(__file__).resolve().parent
 DOCS = ROOT / "data" / "sample_docs"
 
 lab = MemoryLab()
 lab.ingest_folder(DOCS)
+
+AUTHOR = "Viraj Rana"
+AUTHOR_TITLE = "ML Engineer"
 
 
 def format_answer(question: str, top_k: int) -> tuple[str, str]:
@@ -61,10 +68,12 @@ EXAMPLES = [
 def build_ui() -> gr.Blocks:
     with gr.Blocks(title="Agent Memory Lab") as demo:
         gr.Markdown(
-            """
+            f"""
             # Agent Memory Lab
-            Lightweight RAG with **citations** and a tiny **eval suite**.
-            No API key required (extractive answers). Set `OPENAI_API_KEY` for LLM mode.
+            Lightweight RAG with **citations** and a tiny **eval suite**.  
+            No API key required (extractive answers).
+
+            **Author:** {AUTHOR} · {AUTHOR_TITLE}
             """
         )
         gr.Markdown(
@@ -93,15 +102,14 @@ def build_ui() -> gr.Blocks:
     return demo
 
 
-if __name__ == "__main__":
-    import os
+demo = build_ui()
+demo.queue()
 
-    share = os.getenv("GRADIO_SHARE", "1") == "1"
+if __name__ == "__main__":
+    # Local / Docker: share off by default on Spaces-like hosts
+    share = os.getenv("GRADIO_SHARE", "0") == "1"
     port = int(os.getenv("PORT", "7860"))
-    print(f"Starting Agent Memory Lab on port {port} (share={share})…", flush=True)
-    ui = build_ui()
-    ui.queue()
-    ui.launch(
+    demo.launch(
         server_name="0.0.0.0",
         server_port=port,
         share=share,
