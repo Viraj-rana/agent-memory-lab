@@ -24,13 +24,23 @@ Lightweight **agent memory / RAG** demo with citations and a tiny golden eval.
 
 > No API keys required for the default extractive demo.
 
-## Live demo (Streamlit Community Cloud)
+## Repository
 
-1. Push this repo to GitHub (public).
-2. Open [share.streamlit.io](https://share.streamlit.io) → **New app**.
-3. Select `Viraj-rana/agent-memory-lab`, branch `master`, file `streamlit_app.py`.
-4. Deploy — your permanent link looks like:  
+https://github.com/Viraj-rana/agent-memory-lab
+
+## Live demo (Streamlit Community Cloud — permanent & free)
+
+Repo is already on GitHub. Finish the one-time deploy:
+
+1. Open [Streamlit Cloud deploy](https://share.streamlit.io/deploy?repository=Viraj-rana/agent-memory-lab&branch=master&mainModule=streamlit_app.py)
+2. Sign in with GitHub → **Deploy**
+3. Your permanent recruiter link will be:  
    `https://<app-name>.streamlit.app`
+
+### Temporary preview (only while this PC is running)
+
+https://launch-erp-bids-heath.trycloudflare.com  
+Local: http://127.0.0.1:8501
 
 ## Run locally
 
