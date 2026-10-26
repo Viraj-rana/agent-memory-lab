@@ -6,10 +6,12 @@ Recruiters: open the live demo, ask a question, click **Run golden eval**.
 
 ## Live demo
 
-**Public preview (while the local server is running):**  
-https://four-feet-vanish.loca.lt
+**Public preview (while this machine keeps the demo running):**  
+https://matt-arising-traveller-glad.trycloudflare.com
 
-> If the tunnel asks for a password/IP gate, open http://127.0.0.1:7861 locally or redeploy to Hugging Face Spaces (permanent).
+Local: http://127.0.0.1:7861
+
+> Tunnel links die when you close the terminal. For a permanent recruiter URL, deploy to Hugging Face Spaces.
 
 ### Run locally
 
