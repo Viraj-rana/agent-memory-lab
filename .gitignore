@@ -9,4 +9,10 @@ build/
 .gradio/
 flagged/
 .env
+.env.*
+!.env.example
 .DS_Store
+*.png
+PR_BODY.md
+.hf_token
+**/secrets.toml

@@ -3,9 +3,9 @@ title: Agent Memory Lab
 emoji: 🧠
 colorFrom: indigo
 colorTo: blue
-sdk: gradio
-sdk_version: 4.44.1
-app_file: app.py
+sdk: streamlit
+sdk_version: 1.32.0
+app_file: streamlit_app.py
 pinned: false
 license: mit
 short_description: RAG agent memory demo with citations — by Viraj Rana (ML Engineer)
@@ -13,7 +13,7 @@ tags:
   - rag
   - agent-memory
   - retrieval
-  - gradio
+  - streamlit
 ---
 
 # Agent Memory Lab
@@ -22,17 +22,15 @@ Lightweight **agent memory / RAG** demo with citations and a tiny golden eval.
 
 **Author:** Viraj Rana · ML Engineer
 
-Recruiters: open the live Space, ask a question, click **Run golden eval**.
+> No API keys required for the default extractive demo.
 
-## What it shows
+## Live demo (Streamlit Community Cloud)
 
-| Capability | How |
-|---|---|
-| Ingest | Markdown docs → overlapping chunks |
-| Retrieve | TF-IDF cosine search (no API key) |
-| Answer | Extractive by default; optional LLM if `OPENAI_API_KEY` is set |
-| Citations | Doc id + score + excerpt on every answer |
-| Eval | Text hit rate + citation hit rate on 4 golden questions |
+1. Push this repo to GitHub (public).
+2. Open [share.streamlit.io](https://share.streamlit.io) → **New app**.
+3. Select `Viraj-rana/agent-memory-lab`, branch `master`, file `streamlit_app.py`.
+4. Deploy — your permanent link looks like:  
+   `https://<app-name>.streamlit.app`
 
 ## Run locally
 
@@ -41,15 +39,39 @@ python -m venv .venv
 # Windows
 .venv\Scripts\activate
 pip install -r requirements.txt
-set GRADIO_SHARE=0
-python app.py
+streamlit run streamlit_app.py
 ```
 
-## Design notes
+## What it shows
 
-- Business logic lives in `src/` — the Gradio app only orchestrates.
-- Default path needs **no cloud key**, so the demo always boots.
-- Built by **Viraj Rana (ML Engineer)** as a portfolio RAG / agent-memory lab.
+| Capability | How |
+|---|---|
+| Ingest | Markdown docs → overlapping chunks |
+| Retrieve | TF-IDF cosine search (no API key) |
+| Answer | Extractive answers with citations |
+| Eval | Text + citation hit rates on golden questions |
+
+## Project layout
+
+```text
+streamlit_app.py       # Streamlit Cloud entrypoint
+app.py                 # Optional Gradio UI (local)
+src/agent_memory_lab/  # library code
+data/sample_docs/      # demo corpus
+notebooks/             # walkthrough
+tests/                 # unit tests
+```
+
+## Tests
+
+```bash
+pip install pytest
+pytest -q
+```
+
+## Author
+
+**Viraj Rana** — ML Engineer
 
 ## License
 
