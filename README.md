@@ -12,37 +12,52 @@ short_description: RAG agent memory demo with citations — by Viraj Rana (ML En
 tags:
   - rag
   - agent-memory
-  - retrieval
+  - retrieval-augmented-generation
+  - machine-learning
   - streamlit
+  - citations
+  - portfolio
 ---
 
-# Agent Memory Lab
+# Agent Memory Lab — RAG & AI Agent Memory Demo
 
-Lightweight **agent memory / RAG** demo with citations and a tiny golden eval.
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://www.python.org/downloads/)
+[![Streamlit](https://img.shields.io/badge/demo-Streamlit-FF4B4B.svg)](https://share.streamlit.io/deploy?repository=Viraj-rana/agent-memory-lab&branch=master&mainModule=streamlit_app.py)
+[![GitHub pages](https://img.shields.io/badge/SEO-GitHub%20Pages-222.svg)](https://viraj-rana.github.io/agent-memory-lab/)
 
-**Author:** Viraj Rana · ML Engineer
+**Retrieval-augmented generation (RAG)** lab for **AI agent memory**: ingest documents, retrieve relevant chunks, answer with **citations**, and measure quality with a golden eval suite.
 
-> No API keys required for the default extractive demo.
+**Author:** [Viraj Rana](https://github.com/Viraj-rana) · ML Engineer  
+**Repo:** https://github.com/Viraj-rana/agent-memory-lab  
+**SEO landing page:** https://viraj-rana.github.io/agent-memory-lab/
 
-## Repository
+> Default demo needs **no API key** (TF-IDF retrieval + extractive answers).
 
-https://github.com/Viraj-rana/agent-memory-lab
+## Why this project
 
-## Live demo (Streamlit Community Cloud — permanent & free)
+Searchable skills this portfolio shows:
 
-Repo is already on GitHub. Finish the one-time deploy:
+- RAG / retrieval-augmented generation pipelines
+- Agent memory architecture (ingest → index → retrieve → answer → evaluate)
+- Citation-aware answers for trustworthy AI
+- Lightweight evaluation (text hit rate + citation hit rate)
+- Clean Python packaging + Streamlit product UI
 
-1. Open [Streamlit Cloud deploy](https://share.streamlit.io/deploy?repository=Viraj-rana/agent-memory-lab&branch=master&mainModule=streamlit_app.py)
+## Live demo
+
+### Permanent (Streamlit Community Cloud — free)
+
+1. Open [Deploy on Streamlit](https://share.streamlit.io/deploy?repository=Viraj-rana/agent-memory-lab&branch=master&mainModule=streamlit_app.py)
 2. Sign in with GitHub → **Deploy**
-3. Your permanent recruiter link will be:  
-   `https://<app-name>.streamlit.app`
+3. Share your `https://….streamlit.app` link with recruiters
 
-### Temporary preview (only while this PC is running)
+### SEO site (GitHub Pages)
 
-https://launch-erp-bids-heath.trycloudflare.com  
-Local: http://127.0.0.1:8501
+Enable **Settings → Pages → Deploy from branch → `/docs`**.  
+Public URL: https://viraj-rana.github.io/agent-memory-lab/
 
-## Run locally
+## Quickstart
 
 ```bash
 python -m venv .venv
@@ -52,25 +67,30 @@ pip install -r requirements.txt
 streamlit run streamlit_app.py
 ```
 
-## What it shows
+## Features
 
-| Capability | How |
+| Capability | Implementation |
 |---|---|
-| Ingest | Markdown docs → overlapping chunks |
-| Retrieve | TF-IDF cosine search (no API key) |
-| Answer | Extractive answers with citations |
-| Eval | Text + citation hit rates on golden questions |
+| Document ingest | Markdown → overlapping chunks |
+| Retrieval | TF-IDF cosine similarity (no cloud embeddings) |
+| Answering | Extractive answers grounded in retrieved memory |
+| Citations | Doc id, score, and excerpt on every answer |
+| Evaluation | Golden questions with text + citation hit rates |
 
-## Project layout
+## Project structure
 
 ```text
-streamlit_app.py       # Streamlit Cloud entrypoint
-app.py                 # Optional Gradio UI (local)
-src/agent_memory_lab/  # library code
-data/sample_docs/      # demo corpus
-notebooks/             # walkthrough
-tests/                 # unit tests
+streamlit_app.py       # Streamlit Cloud entrypoint (SEO page title/meta-friendly)
+docs/                  # GitHub Pages SEO landing (meta, Open Graph, JSON-LD)
+src/agent_memory_lab/  # Core library
+data/sample_docs/      # Demo corpus about agent memory & RAG
+notebooks/             # Jupyter walkthrough
+tests/                 # Unit tests
 ```
+
+## Topics / keywords
+
+`rag` · `retrieval-augmented-generation` · `agent-memory` · `ai-agents` · `machine-learning` · `citations` · `information-retrieval` · `streamlit` · `ml-engineer-portfolio` · `viraj-rana`
 
 ## Tests
 
@@ -81,7 +101,9 @@ pytest -q
 
 ## Author
 
-**Viraj Rana** — ML Engineer
+**Viraj Rana** — ML Engineer  
+
+Building practical AI systems: RAG, agent memory, evaluation, and clean demos recruiters can click.
 
 ## License
 

@@ -5,12 +5,24 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "agent-memory-lab"
 version = "0.1.0"
-description = "Lightweight agent memory / RAG lab with citations and eval"
+description = "RAG and AI agent memory lab with citations and eval — by Viraj Rana (ML Engineer)"
 readme = "README.md"
 requires-python = ">=3.10"
+authors = [{ name = "Viraj Rana" }]
+keywords = [
+  "rag",
+  "retrieval-augmented-generation",
+  "agent-memory",
+  "ai-agents",
+  "machine-learning",
+  "citations",
+  "streamlit",
+  "information-retrieval",
+]
 dependencies = [
   "numpy>=1.26",
   "scikit-learn>=1.4",
+  "streamlit>=1.32",
   "gradio>=4.44",
 ]
 

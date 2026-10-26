@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Agent Memory Lab | RAG &amp; AI Agent Memory Demo by Viraj Rana (ML Engineer)</title>
+  <meta
+    name="description"
+    content="Agent Memory Lab is a free open-source RAG (retrieval-augmented generation) and AI agent memory demo with citations and evaluation. Built by Viraj Rana, ML Engineer. No API key required."
+  />
+  <meta
+    name="keywords"
+    content="RAG, retrieval augmented generation, agent memory, AI agents, machine learning, ML engineer portfolio, citations, TF-IDF, Streamlit, Viraj Rana, open source"
+  />
+  <meta name="author" content="Viraj Rana" />
+  <meta name="robots" content="index, follow" />
+  <link rel="canonical" href="https://viraj-rana.github.io/agent-memory-lab/" />
+
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="Agent Memory Lab — RAG Agent Memory Demo" />
+  <meta
+    property="og:description"
+    content="Ask an agent memory stack with citations and a golden eval suite. Portfolio project by Viraj Rana (ML Engineer)."
+  />
+  <meta property="og:url" content="https://viraj-rana.github.io/agent-memory-lab/" />
+  <meta property="og:site_name" content="Agent Memory Lab" />
+  <meta property="og:locale" content="en_US" />
+
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content="Agent Memory Lab — RAG Agent Memory Demo" />
+  <meta
+    name="twitter:description"
+    content="Free RAG / agent-memory lab with citations. Built by Viraj Rana, ML Engineer."
+  />
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "SoftwareApplication",
+    "name": "Agent Memory Lab",
+    "applicationCategory": "DeveloperApplication",
+    "operatingSystem": "Web",
+    "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+    "description": "Lightweight RAG and AI agent memory demo with citations and evaluation. No API key required.",
+    "url": "https://github.com/Viraj-rana/agent-memory-lab",
+    "author": {
+      "@type": "Person",
+      "name": "Viraj Rana",
+      "jobTitle": "ML Engineer",
+      "url": "https://github.com/Viraj-rana"
+    },
+    "keywords": [
+      "RAG",
+      "agent memory",
+      "retrieval augmented generation",
+      "machine learning",
+      "citations"
+    ]
+  }
+  </script>
+  <style>
+    :root {
+      --bg: #0b1220;
+      --card: #121a2b;
+      --text: #e8eefc;
+      --muted: #9db0d0;
+      --accent: #818cf8;
+      --line: #243047;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: radial-gradient(1200px 600px at 10% -10%, #1e293b, var(--bg));
+      color: var(--text);
+      line-height: 1.55;
+    }
+    main {
+      max-width: 760px;
+      margin: 0 auto;
+      padding: 4rem 1.25rem 5rem;
+    }
+    h1 {
+      font-size: clamp(2rem, 4vw, 2.75rem);
+      line-height: 1.15;
+      margin: 0 0 0.75rem;
+    }
+    .eyebrow {
+      color: var(--accent);
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+      font-size: 0.8rem;
+      margin-bottom: 0.75rem;
+    }
+    p.lead { color: var(--muted); font-size: 1.1rem; margin: 0 0 1.75rem; }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 1.25rem 1.35rem;
+      margin: 1.25rem 0;
+    }
+    ul { margin: 0.5rem 0 0; padding-left: 1.2rem; color: var(--muted); }
+    .actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-top: 1.5rem; }
+    a.btn {
+      display: inline-block;
+      text-decoration: none;
+      padding: 0.7rem 1.1rem;
+      border-radius: 999px;
+      font-weight: 600;
+    }
+    a.primary { background: var(--accent); color: #0b1220; }
+    a.secondary { border: 1px solid var(--line); color: var(--text); }
+    footer { margin-top: 2.5rem; color: var(--muted); font-size: 0.95rem; }
+  </style>
+</head>
+<body>
+  <main>
+    <p class="eyebrow">Open-source ML portfolio project</p>
+    <h1>Agent Memory Lab</h1>
+    <p class="lead">
+      A clean <strong>RAG</strong> and <strong>AI agent memory</strong> demo:
+      ingest docs, retrieve with TF-IDF, answer with <strong>citations</strong>,
+      and run a tiny golden eval — no API key required.
+    </p>
+
+    <div class="card">
+      <strong>What recruiters can try</strong>
+      <ul>
+        <li>Ask questions against sample agent-memory docs</li>
+        <li>Inspect citation scores and source chunks</li>
+        <li>Run text + citation hit-rate evaluation</li>
+      </ul>
+    </div>
+
+    <div class="actions">
+      <a class="btn primary" href="https://github.com/Viraj-rana/agent-memory-lab">View on GitHub</a>
+      <a class="btn secondary" href="https://share.streamlit.io/deploy?repository=Viraj-rana/agent-memory-lab&amp;branch=master&amp;mainModule=streamlit_app.py">Deploy live demo</a>
+    </div>
+
+    <footer>
+      Built by <strong>Viraj Rana</strong>, ML Engineer · MIT License ·
+      Keywords: RAG, agent memory, retrieval-augmented generation, citations, Streamlit
+    </footer>
+  </main>
+</body>
+</html>

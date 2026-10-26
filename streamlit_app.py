@@ -18,9 +18,18 @@ AUTHOR_TITLE = "ML Engineer"
 DOCS = ROOT / "data" / "sample_docs"
 
 st.set_page_config(
-    page_title="Agent Memory Lab",
+    page_title="Agent Memory Lab | RAG & AI Agent Memory by Viraj Rana",
     page_icon="🧠",
     layout="wide",
+    menu_items={
+        "About": (
+            "Agent Memory Lab — RAG / agent-memory demo with citations. "
+            "Built by Viraj Rana, ML Engineer. "
+            "https://github.com/Viraj-rana/agent-memory-lab"
+        ),
+        "Get help": "https://github.com/Viraj-rana/agent-memory-lab#readme",
+        "Report a bug": "https://github.com/Viraj-rana/agent-memory-lab/issues",
+    },
 )
 
 
@@ -36,8 +45,12 @@ def main() -> None:
 
     st.title("Agent Memory Lab")
     st.caption(
-        f"Lightweight RAG with citations · no API key required · "
+        f"RAG & AI agent memory demo with citations · no API key required · "
         f"**{AUTHOR}** · {AUTHOR_TITLE}"
+    )
+    st.markdown(
+        "Explore **retrieval-augmented generation**: ask questions, inspect "
+        "**citations**, and run a golden **evaluation** suite."
     )
     st.write(
         f"Indexed **{lab.chunk_count}** chunks from "
