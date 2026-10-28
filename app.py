@@ -51,8 +51,8 @@ def run_demo_eval() -> str:
     for r in results:
         q = r.question.replace("|", "/")
         rows.append(
-            f"| {q} | {'✅' if r.pass_text else '❌'} | "
-            f"{'✅' if r.pass_citation else '❌'} | {', '.join(r.cited_docs) or '—'} |"
+            f"| {q} | {'' if r.pass_text else ''} | "
+            f"{'' if r.pass_citation else ''} | {', '.join(r.cited_docs) or '—'} |"
         )
     return "\n".join(rows)
 
