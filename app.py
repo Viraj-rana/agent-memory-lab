@@ -106,7 +106,6 @@ demo = build_ui()
 demo.queue()
 
 if __name__ == "__main__":
-    # Local / Docker: share off by default on Spaces-like hosts
     share = os.getenv("GRADIO_SHARE", "0") == "1"
     port = int(os.getenv("PORT", "7860"))
     demo.launch(
