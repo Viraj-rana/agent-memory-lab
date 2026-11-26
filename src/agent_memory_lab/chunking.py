@@ -25,7 +25,6 @@ def chunk_text(doc_id: str, text: str, *, size: int = 420, overlap: int = 80) ->
     index = 0
     while start < len(clean):
         end = min(start + size, len(clean))
-        # Prefer breaking on sentence boundaries when possible.
         window = clean[start:end]
         if end < len(clean):
             punct = max(window.rfind(". "), window.rfind("? "), window.rfind("! "))
